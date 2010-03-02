@@ -1,0 +1,23 @@
+This plugin allows you to embed related forms in a Doctrine form class,
+manipulate those embedded forms (i.e. add more, remove some, etc), and see
+those relations updated when the form is processed.
+
+    [php]
+    class AuthorForm extends BaseAuthorForm
+    {
+      public function configure()
+      {
+        $this->embedDynamicRelation('Books as books');
+      }
+    }
+
+Limitations
+-----------
+
+ * The primary key of the related model must by "id"
+ * The embedded form class must include an "id" field
+
+Roadmap
+-------
+
+ * Detect the related model's primary key
