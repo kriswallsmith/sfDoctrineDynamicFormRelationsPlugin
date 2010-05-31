@@ -1,6 +1,6 @@
 This plugin allows you to embed related forms in a Doctrine form class,
 manipulate those embedded forms using JavaScript (i.e. add more, remove some,
-etc), and will automatically updates those relations when the form is
+etc), and will automatically update those relations when the form is
 processed.
 
     [php]
@@ -21,17 +21,17 @@ This form can now be rendered something like this, enhanced with JavaScript:
         <?php foreach ($form['books'] as $bookFields): ?>
           <li>
             <table><?php echo $bookFields ?></table>
-            <a href="javascript:remove(this)">remove this book</a>
+            <a href="javascript:remove_book(this)">remove this book</a>
           </li>
         <?php endforeach ?>
       </ul>
-      <a href="javascript:add()">add another book</a>
+      <a href="javascript:add_book()">add another book</a>
       <!-- ... -->
     </form>
 
 Once your JavaScript is setup (which is up to you), your user can remove some
-of the listed books and add a few more. Then, once the form is submitted, the
-database will be updated to reflect those changes.
+of the listed books and add a few more. When you submit the form the database
+will be updated to reflect those changes.
 
 Limitations
 -----------
@@ -43,3 +43,4 @@ Roadmap
 -------
 
  * Detect the related model's primary key
+ * Obfuscate and add the primary key for embedded forms when needed
