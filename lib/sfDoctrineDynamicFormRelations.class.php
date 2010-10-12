@@ -86,6 +86,9 @@ class sfDoctrineDynamicFormRelations extends sfForm
       }
     }
 
+    // add an event listener to process delete of relations
+    $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
+
     return $values;
   }
 
@@ -132,12 +135,6 @@ class sfDoctrineDynamicFormRelations extends sfForm
       'class'     => $formClass,
       'arguments' => $formArgs,
     ))));
-
-    // add record listener to handle deletes (once)
-    if (!$form->getObject()->getListener()->get('dynamic_relations'))
-    {
-      $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form), 'dynamic_relations');
-    }
 
     // do the actual embedding
     $this->doEmbed($form, $field, $form->getObject()->get($relation->getAlias()));
