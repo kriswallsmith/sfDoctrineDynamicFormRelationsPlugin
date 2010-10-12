@@ -2,7 +2,7 @@
 
 /**
  * Processes deletion of removed foreign objects.
- * 
+ *
  * @package    sfDoctrineDynamicFormRelationsPlugin
  * @subpackage record
  * @author     Kris Wallsmith <kris.wallsmith@symfony-project.com>
@@ -14,7 +14,7 @@ class sfDoctrineDynamicFormRelationsListener extends Doctrine_Record_Listener
 
   /**
    * Constructor.
-   * 
+   *
    * @param sfForm $form A form
    */
   public function __construct(sfForm $form)
@@ -24,10 +24,10 @@ class sfDoctrineDynamicFormRelationsListener extends Doctrine_Record_Listener
 
   /**
    * Pre-save logic.
-   * 
+   *
    * Use preSave instead of preUpdate since the latter depends on the record's
    * state, which isn't necessarily dirty.
-   * 
+   *
    * @see Doctrine_Record_Listener
    */
   public function preSave(Doctrine_Event $event)
