@@ -3,7 +3,6 @@ manipulate those embedded forms using JavaScript (i.e. add more, remove some,
 etc), and will automatically update those relations when the form is
 processed.
 
-    [php]
     class AuthorForm extends BaseAuthorForm
     {
       public function configure()
@@ -14,7 +13,6 @@ processed.
 
 This form can now be rendered something like this, enhanced with JavaScript:
 
-    [html]
     <form action="#" method="post">
       <!-- ... -->
       <ul>
