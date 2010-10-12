@@ -84,10 +84,10 @@ class sfDoctrineDynamicFormRelations extends sfForm
       {
         $this->doEmbed($form, $field, isset($values[$field]) ? $values[$field] : array());
       }
-    }
 
-    // add an event listener to process delete of relations
-    $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
+      // add an event listener to process delete of relations
+      $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
+    }
 
     return $values;
   }
