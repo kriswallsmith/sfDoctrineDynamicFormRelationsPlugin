@@ -8,7 +8,7 @@
  * @package    sfDoctrineDynamicFormRelationsPlugin
  * @subpackage form
  * @author     Kris Wallsmith <kris.wallsmith@symfony-project.com>
- * @version    SVN: $Id$
+ * @version    SVN: $Id: sfDoctrineDynamicFormRelations.class.php 28337 2010-03-02 09:04:42Z Kris.Wallsmith $
  */
 class sfDoctrineDynamicFormRelations extends sfForm
 {
@@ -128,14 +128,15 @@ class sfDoctrineDynamicFormRelations extends sfForm
 
     // store configuration for this relation to the form
     $config = $form->getOption('dynamic_relations');
-    $form->setOption('dynamic_relations', array_merge($config ? $config : array(), array($field => array(
+    $form->setOption('dynamic_relations', sfToolkit::arrayDeepMerge($config ? $config : array(), array($field => array(
       'relation'  => $relation,
       'class'     => $formClass,
       'arguments' => $formArgs,
     ))));
 
     // add record listener to handle deletes (once)
-    if (!$form->getObject()->getListener()->get('dynamic_relations'))
+    $currentListeners = $form->getObject()->getListener();
+    if ($currentListeners instanceof Doctrine_Record_Listener_Chain && !$currentListeners->get('dynamic_relations'))
     {
       $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form), 'dynamic_relations');
     }
@@ -162,6 +163,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
     $r = new ReflectionClass($config['class']);
 
     $parent = new BaseForm();
+    $this->setFormatterFromConfig($parent, $config);
     foreach ($values as $i => $value)
     {
       if (is_object($value))
@@ -219,6 +221,17 @@ class sfDoctrineDynamicFormRelations extends sfForm
       {
         return $embed;
       }
+    }
+  }
+
+  protected function setFormatterFromConfig(sfForm $form, array $config)
+  {
+    if(array_key_exists('formatter_class', $config))
+    {
+      $className = $config['formatter_class'];
+      $formatter = new $className($form->getWidgetSchema());
+      $form->getWidgetSchema()->addFormFormatter($className, $formatter);
+      $form->getWidgetSchema()->setFormFormatterName($className);
     }
   }
 }
