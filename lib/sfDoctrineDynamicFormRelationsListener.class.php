@@ -6,7 +6,6 @@
  * @package    sfDoctrineDynamicFormRelationsPlugin
  * @subpackage record
  * @author     Kris Wallsmith <kris.wallsmith@symfony-project.com>
- * @version    SVN: $Id$
  */
 class sfDoctrineDynamicFormRelationsListener extends Doctrine_Record_Listener
 {
