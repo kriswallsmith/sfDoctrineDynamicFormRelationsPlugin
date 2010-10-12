@@ -2,9 +2,9 @@
 
 /**
  * Adds a method to embed a relation that automatically adjusts for incoming data.
- * 
+ *
  * This class extends sfForm so we can manipulate protected members of form objects.
- * 
+ *
  * @package    sfDoctrineDynamicFormRelationsPlugin
  * @subpackage form
  * @author     Kris Wallsmith <kris.wallsmith@symfony-project.com>
@@ -17,7 +17,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
 
   /**
    * Constructor.
-   * 
+   *
    * Disables the parent sfForm constructor.
    */
   public function __construct(sfEventDispatcher $dispatcher)
@@ -47,11 +47,11 @@ class sfDoctrineDynamicFormRelations extends sfForm
 
   /**
    * Adds the "embedDynamicRelation" method to sfForm.
-   * 
+   *
    * @param sfEvent $event A "form.method_not_found" event
-   * 
+   *
    * @return boolean Whether the event was processed
-   * 
+   *
    * @see embedDynamicRelation()
    */
   public function listenForMethodNotFound(sfEvent $event)
@@ -69,10 +69,10 @@ class sfDoctrineDynamicFormRelations extends sfForm
 
   /**
    * Filters form values before they're bound.
-   * 
+   *
    * Re-embeds all dynamically embedded relations to match up with the input values.
-   * 
-   * @param sfEvent $event A "form.filter_values" event
+   *
+   * @param sfEvent $event  A "form.filter_values" event
    * @param array   $values Tainted form values
    */
   public function filterValues(sfEvent $event, $values)
@@ -87,6 +87,9 @@ class sfDoctrineDynamicFormRelations extends sfForm
       }
     }
 
+    // add an event listener to process delete of relations
+    $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
+
     return $values;
   }
 
@@ -94,7 +97,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
 
   /**
    * Embeds a dynamic relation in a form.
-   * 
+   *
    * @param sfForm $form         A form
    * @param string $relationName A relation name and optional alias
    * @param string $formClass    A form class
@@ -134,23 +137,16 @@ class sfDoctrineDynamicFormRelations extends sfForm
       'arguments' => $formArgs,
     ))));
 
-    // add record listener to handle deletes (once)
-    $currentListeners = $form->getObject()->getListener();
-    if ($currentListeners instanceof Doctrine_Record_Listener_Chain && !$currentListeners->get('dynamic_relations'))
-    {
-      $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form), 'dynamic_relations');
-    }
-
     // do the actual embedding
     $this->doEmbed($form, $field, $form->getObject()->get($relation->getAlias()));
   }
 
   /**
    * Does the actual embedding.
-   * 
+   *
    * This method is called when a relation is dynamically embedded during form
    * configuration and again just before input values are validated.
-   * 
+   *
    * @param sfForm                    $form   A form
    * @param string                    $field  A field name to use for embedding
    * @param Doctrine_Collection|array $values An collection of values (objects or arrays) to use for embedding
@@ -206,11 +202,11 @@ class sfDoctrineDynamicFormRelations extends sfForm
 
   /**
    * Finds a form embedded in the supplied form based on id.
-   * 
+   *
    * @param sfForm $form  A form
    * @param string $field The field name used for embedding
    * @param mixed  $id    An id value
-   * 
+   *
    * @return sfForm|null The embedded form, if one is found
    */
   protected function findEmbeddedFormById(sfForm $form, $field, $id)
