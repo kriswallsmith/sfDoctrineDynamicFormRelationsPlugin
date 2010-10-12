@@ -71,7 +71,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
    * 
    * Re-embeds all dynamically embedded relations to match up with the input values.
    * 
-   * @param sfEvent $event A "form.filter_values" event
+   * @param sfEvent $event  A "form.filter_values" event
    * @param array   $values Tainted form values
    */
   public function filterValues(sfEvent $event, $values)
