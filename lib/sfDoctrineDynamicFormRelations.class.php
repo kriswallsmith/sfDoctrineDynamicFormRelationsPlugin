@@ -81,6 +81,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
 
     $this->reEmbed($form, $values, true);
 
+    ProjectConfiguration::printEmbeds($event->getSubject(), 'form2: ');
     return $values;
   }
 
@@ -106,12 +107,12 @@ class sfDoctrineDynamicFormRelations extends sfForm
       {
         $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
       }
+    }
 
-      // recursive re-embed down the line
-      foreach ($form->getEmbeddedForm($field)->getEmbeddedForms() as $i => $embed)
-      {
-        $this->reEmbed($embed, $values[$field][$i]);
-      }
+    // recursive re-embed down the line
+    foreach ($form->getEmbeddedForms() as $field => $embed)
+    {
+      $this->reEmbed($embed, $values[$field]);
     }
   }
 
