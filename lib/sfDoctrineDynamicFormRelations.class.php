@@ -140,7 +140,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
     // validate relation type
     if (Doctrine_Relation::MANY != $relation->getType())
     {
-      throw new LogicException(sprintf('The %s "%s" relation is not a MANY relation.', get_class($form->getObject()), $relation->getName()));
+      throw new LogicException(sprintf('The %s "%s" relation is not a MANY relation.', get_class($form->getObject()), $relation->getAlias()));
     }
 
     // use the default form class
