@@ -81,7 +81,6 @@ class sfDoctrineDynamicFormRelations extends sfForm
 
     $this->reEmbed($form, $values, true);
 
-    ProjectConfiguration::printEmbeds($event->getSubject(), 'form2: ');
     return $values;
   }
 
