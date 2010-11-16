@@ -79,7 +79,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
   {
     $form = $event->getSubject();
 
-    $this->reEmbed($form, $values, true);
+    $this->reEmbed($form, $values);
 
     return $values;
   }
@@ -92,7 +92,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
    * @param sfForm $form   A form
    * @param array  $values Tainted form values
    */
-  protected function reEmbed(sfForm $form, $values, $addListener = false)
+  protected function reEmbed(sfForm $form, $values)
   {
     if ($relations = $form->getOption('dynamic_relations'))
     {
@@ -102,16 +102,16 @@ class sfDoctrineDynamicFormRelations extends sfForm
       }
 
       // add an event listener to process delete of relations
-      if(true === $addListener)
-      {
-        $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
-      }
+      $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
     }
 
     // recursive re-embed down the line
     foreach ($form->getEmbeddedForms() as $field => $embed)
     {
-      $this->reEmbed($embed, $values[$field]);
+      if(array_key_exists($field, $values))
+      {
+        $this->reEmbed($embed, $values[$field]);
+      }
     }
   }
 

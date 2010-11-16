@@ -33,7 +33,13 @@ class sfDoctrineDynamicFormRelationsListener extends Doctrine_Record_Listener
    */
   public function preSave(Doctrine_Event $event)
   {
-    $this->doPreSave($event->getInvoker(), $this->form);
+    // this listener may have been added several times with a different $form instance
+    // but as listeners have a model rather than a record scope we need to filter if
+    // this current listener actually matches!
+    if($this->form->getObject()->id == $event->getInvoker()->id)
+    {
+      $this->doPreSave($event->getInvoker(), $this->form);
+    }
   }
 
   protected function doPreSave(Doctrine_Record $record, sfForm $form)
@@ -49,7 +55,6 @@ class sfDoctrineDynamicFormRelationsListener extends Doctrine_Record_Listener
         $search = array();
         foreach ($form->getEmbeddedForm($field)->getEmbeddedForms() as $i => $embed)
         {
-          $this->doPreSave($collection[$i], $embed);
           $search[] = $embed->getObject();
         }
 
