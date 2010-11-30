@@ -53,9 +53,17 @@ class sfDoctrineDynamicFormRelationsListener extends Doctrine_Record_Listener
 
         // collect form objects for comparison
         $search = array();
-        foreach ($form->getEmbeddedForm($field)->getEmbeddedForms() as $i => $embed)
+        try
         {
-          $search[] = $embed->getObject();
+          foreach ($form->getEmbeddedForm($field)->getEmbeddedForms() as $i => $embed)
+          {
+            $search[] = $embed->getObject();
+          }
+        }
+        catch(InvalidArgumentException $e)
+        {
+          // previously embedded form was removed at the end of form.filter_values as there were no values for it.
+          // @see sfDoctrineDynamicFormRelations::correctValidators()
         }
 
         foreach ($collection as $i => $object)
