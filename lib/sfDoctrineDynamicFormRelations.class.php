@@ -8,6 +8,7 @@
  * @package    sfDoctrineDynamicFormRelationsPlugin
  * @subpackage form
  * @author     Kris Wallsmith <kris.wallsmith@symfony-project.com>
+ * @author     Christian Schaefer <caefer@ical.ly>
  */
 class sfDoctrineDynamicFormRelations extends sfForm
 {
@@ -78,6 +79,21 @@ class sfDoctrineDynamicFormRelations extends sfForm
   {
     $form = $event->getSubject();
 
+    $this->reEmbed($form, $values, true);
+
+    return $values;
+  }
+
+  // protected
+
+  /**
+   * Re-embeds all dynamically embedded relations recursively to match up with the input values.
+   *
+   * @param sfForm $form   A form
+   * @param array  $values Tainted form values
+   */
+  protected function reEmbed(sfForm $form, $values, $addListener = false)
+  {
     if ($relations = $form->getOption('dynamic_relations'))
     {
       foreach (array_keys($relations) as $field)
@@ -86,13 +102,18 @@ class sfDoctrineDynamicFormRelations extends sfForm
       }
 
       // add an event listener to process delete of relations
-      $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
+      if(true === $addListener)
+      {
+        $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
+      }
+
+      // recursive re-embed down the line
+      foreach ($form->getEmbeddedForm($field)->getEmbeddedForms() as $i => $embed)
+      {
+        $this->reEmbed($embed, $values[$field][$i]);
+      }
     }
-
-    return $values;
   }
-
-  // protected
 
   /**
    * Embeds a dynamic relation in a form.
@@ -176,6 +197,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
       else
       {
         $object = $config['relation']->getTable()->create();
+        $object->fromArray($value);
         $form->getObject()->get($config['relation']->getAlias())->add($object);
 
         $child = $r->newInstanceArgs(array_merge(array($object), $config['arguments']));
