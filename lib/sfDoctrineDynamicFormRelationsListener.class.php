@@ -6,6 +6,7 @@
  * @package    sfDoctrineDynamicFormRelationsPlugin
  * @subpackage record
  * @author     Kris Wallsmith <kris.wallsmith@symfony-project.com>
+ * @author     Christian Schaefer <caefer@ical.ly>
  */
 class sfDoctrineDynamicFormRelationsListener extends Doctrine_Record_Listener
 {
@@ -32,19 +33,39 @@ class sfDoctrineDynamicFormRelationsListener extends Doctrine_Record_Listener
    */
   public function preSave(Doctrine_Event $event)
   {
+    // this listener may have been added several times with a different $form instance
+    // but as listeners have a model rather than a record scope we need to filter if
+    // this current listener actually matches!
+    if($this->form->getObject()->id == $event->getInvoker()->id)
+    {
+      $this->doPreSave($event->getInvoker(), $this->form);
+    }
+  }
+
+  protected function doPreSave(Doctrine_Record $record, sfForm $form)
+  {
     // loop through relations
-    if ($relations = $this->form->getOption('dynamic_relations'))
+    if ($relations = $form->getOption('dynamic_relations'))
     {
       foreach ($relations as $field => $config)
       {
+        $collection = $record->get($config['relation']->getAlias());
+
         // collect form objects for comparison
         $search = array();
-        foreach ($this->form->getEmbeddedForm($field)->getEmbeddedForms() as $embed)
+        try
         {
-          $search[] = $embed->getObject();
+          foreach ($form->getEmbeddedForm($field)->getEmbeddedForms() as $i => $embed)
+          {
+            $search[] = $embed->getObject();
+          }
+        }
+        catch(InvalidArgumentException $e)
+        {
+          // previously embedded form was removed at the end of form.filter_values as there were no values for it.
+          // @see sfDoctrineDynamicFormRelations::correctValidators()
         }
 
-        $collection = $event->getInvoker()->get($config['relation']->getAlias());
         foreach ($collection as $i => $object)
         {
           if (false === $pos = array_search($object, $search, true))

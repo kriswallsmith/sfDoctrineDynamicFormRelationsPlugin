@@ -8,6 +8,7 @@
  * @package    sfDoctrineDynamicFormRelationsPlugin
  * @subpackage form
  * @author     Kris Wallsmith <kris.wallsmith@symfony-project.com>
+ * @author     Christian Schaefer <caefer@ical.ly>
  */
 class sfDoctrineDynamicFormRelations extends sfForm
 {
@@ -78,6 +79,49 @@ class sfDoctrineDynamicFormRelations extends sfForm
   {
     $form = $event->getSubject();
 
+    $this->reEmbed($form, $values);
+
+    $this->correctValidators($form);
+
+    return $values;
+  }
+
+  // protected
+
+  /**
+   * Replacing validators with their up-to-date equivalent from an embedded form.
+   *
+   * @param  sfForm $form Form instance on which to replace validators
+   *
+   * @return sfValidatorSchema
+   */
+  protected function correctValidators($form)
+  {
+    foreach($form->getEmbeddedForms() as $field => $embed)
+    {
+      if($form->getValidator($field) instanceof sfValidatorSchema)
+      {
+        foreach($embed->getValidatorSchema()->getFields() as $name => $validator)
+        {
+          if(!$form->getValidator($field)->offsetExists($name))
+          {
+            $embed->getValidatorSchema()->offsetUnset($name);
+          }
+        }
+        $form->setValidator($field, $this->correctValidators($embed));
+      }
+    }
+    return $form->getValidatorSchema();
+  }
+
+  /**
+   * Re-embeds all dynamically embedded relations recursively to match up with the input values.
+   *
+   * @param sfForm $form   A form
+   * @param array  $values Tainted form values
+   */
+  protected function reEmbed(sfForm $form, $values)
+  {
     if ($relations = $form->getOption('dynamic_relations'))
     {
       foreach (array_keys($relations) as $field)
@@ -89,10 +133,22 @@ class sfDoctrineDynamicFormRelations extends sfForm
       $form->getObject()->addListener(new sfDoctrineDynamicFormRelationsListener($form));
     }
 
-    return $values;
+    // recursive re-embed down the line
+    foreach ($form->getEmbeddedForms() as $field => $embed)
+    {
+      if(array_key_exists($field, $values))
+      {
+        $this->reEmbed($embed, $values[$field]);
+      }
+      else
+      {
+        // unsetting field when no value for it exists
+        // this happens on the embedded form - unfortunately its validator schema is not considered by its parent
+        // that's why it needs to be corrected afterwards. @see self::correctValidators()
+        $form->offsetUnset($field);
+      }
+    }
   }
-
-  // protected
 
   /**
    * Embeds a dynamic relation in a form.
@@ -119,7 +175,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
     // validate relation type
     if (Doctrine_Relation::MANY != $relation->getType())
     {
-      throw new LogicException(sprintf('The %s "%s" relation is not a MANY relation.', get_class($form->getObject()), $relation->getName()));
+      throw new LogicException(sprintf('The %s "%s" relation is not a MANY relation.', get_class($form->getObject()), $relation->getAlias()));
     }
 
     // use the default form class
@@ -176,6 +232,7 @@ class sfDoctrineDynamicFormRelations extends sfForm
       else
       {
         $object = $config['relation']->getTable()->create();
+        $object->fromArray($value);
         $form->getObject()->get($config['relation']->getAlias())->add($object);
 
         $child = $r->newInstanceArgs(array_merge(array($object), $config['arguments']));
